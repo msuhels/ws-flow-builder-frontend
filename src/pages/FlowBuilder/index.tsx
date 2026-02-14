@@ -246,6 +246,17 @@ const FlowBuilderContent = () => {
         const outgoingEdges = edges.filter(edge => edge.source === node.id);
         const incomingEdges = edges.filter(edge => edge.target === node.id);
         
+        // Determine actual node type based on buttons
+        let actualType = node.type;
+        const hasButtons = node.data.buttons && node.data.buttons.length > 0;
+        
+        // Auto-convert type based on buttons
+        if ((node.type === 'message' || node.type === 'button') && hasButtons) {
+          actualType = 'button';
+        } else if ((node.type === 'message' || node.type === 'button') && !hasButtons) {
+          actualType = 'message';
+        }
+        
         // Map connections with button index from sourceHandle
         const connections = outgoingEdges.map((edge) => {
           let buttonIndex = 0;
@@ -291,7 +302,7 @@ const FlowBuilderContent = () => {
 
         const payload = {
            id: node.id,
-           type: node.type || 'message', 
+           type: actualType, 
            name: node.data.label || 'New Node',
            position: node.position,
            properties: node.data,
