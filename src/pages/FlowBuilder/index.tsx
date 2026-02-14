@@ -16,7 +16,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import api from '../../lib/axios';
-import { Save, ArrowLeft, Loader, MessageSquare, UserCheck, StickyNote, GitFork, Tag, Webhook, Headset, Beaker } from 'lucide-react';
+import { Save, ArrowLeft, Loader, MessageSquare, UserCheck, StickyNote, GitFork, Tag, Webhook, Headset, Beaker, Globe } from 'lucide-react';
 
 import MessageNode from '../../components/flow/MessageNode';
 import InputNode from '../../components/flow/InputNode';
@@ -24,6 +24,7 @@ import NoteNode from '../../components/flow/NoteNode';
 import ConditionNode from '../../components/flow/ConditionNode';
 import TagNode from '../../components/flow/TagNode';
 import WebhookNode from '../../components/flow/WebhookNode';
+import HTTPNode from '../../components/flow/HTTPNode';
 import AgentHandoffNode from '../../components/flow/AgentHandoffNode';
 import PropertiesPanel from '../../components/flow/PropertiesPanel';
 import FlowTestPanel from '../../components/flow/FlowTestPanel';
@@ -41,6 +42,7 @@ const nodeTypes = {
   condition: ConditionNode,
   tag: TagNode,
   webhook: WebhookNode,
+  http: HTTPNode,
   handoff: AgentHandoffNode,
 };
 
@@ -492,6 +494,14 @@ const FlowBuilderContent = () => {
                       >
                          <Webhook className="w-4 h-4 mr-3 text-gray-400 group-hover:text-pink-600" />
                          Trigger Webhook
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-gray-50 rounded cursor-move text-sm text-gray-700 hover:text-blue-700 transition-colors flex items-center group"
+                        onDragStart={(event) => onDragStart(event, 'http', 'HTTP Request')}
+                        draggable
+                      >
+                         <Globe className="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-600" />
+                         HTTP Request
                       </div>
                       <div 
                         className="p-2 hover:bg-gray-50 rounded cursor-move text-sm text-gray-700 hover:text-red-700 transition-colors flex items-center group"
