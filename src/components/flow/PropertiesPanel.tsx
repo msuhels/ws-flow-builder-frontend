@@ -30,7 +30,13 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
   const handleButtonAdd = () => {
     const currentButtons = data.buttons || [];
     if (currentButtons.length < 3) {
-      handleChange('buttons', [...currentButtons, { type: 'reply', text: 'New Button', btn_id: uuidv4() }]);
+      const newButtons = [...currentButtons, { type: 'reply', text: 'New Button', btn_id: uuidv4() }];
+      handleChange('buttons', newButtons);
+      
+      // If this is a plain message node, change type to button
+      if (selectedNode && selectedNode.type === 'message') {
+        onUpdate(selectedNode.id, { ...data, buttons: newButtons, nodeType: 'button' });
+      }
     }
   };
 
@@ -44,6 +50,11 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
     const newButtons = [...(data.buttons || [])];
     newButtons.splice(index, 1);
     handleChange('buttons', newButtons);
+    
+    // If all buttons are removed, change type back to message
+    if (newButtons.length === 0 && selectedNode && selectedNode.type === 'button') {
+      onUpdate(selectedNode.id, { ...data, buttons: newButtons, nodeType: 'message' });
+    }
   };
 
   const renderContent = () => {
@@ -158,7 +169,7 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
                   </div>
                 ))}
                 {(!data.buttons || data.buttons.length === 0) && (
-                  <p className="text-xs text-gray-400 italic">No buttons added.</p>
+                  <p className="text-xs text-gray-400 italic">No buttons added. Add buttons to make this an interactive message.</p>
                 )}
               </div>
             </div>
