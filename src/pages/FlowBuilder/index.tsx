@@ -239,11 +239,12 @@ const FlowBuilderContent = () => {
          console.log('[FlowBuilder] Flow updated:', flowUpdate.data);
       }
 
-      // 3. Prepare nodes payload with proper button routing
+      // 3. Prepare nodes payload with proper button routing and previous_node_id
       const nodesPayload = nodes
         .filter(n => n.type !== 'start') // Exclude virtual start node
         .map(node => {
         const outgoingEdges = edges.filter(edge => edge.source === node.id);
+        const incomingEdges = edges.filter(edge => edge.target === node.id);
         
         // Map connections with button index from sourceHandle
         const connections = outgoingEdges.map((edge) => {
@@ -262,6 +263,32 @@ const FlowBuilderContent = () => {
           };
         });
 
+        // Calculate previous_node_id based on incoming edge
+        let previousNodeId = null;
+        if (incomingEdges.length > 0) {
+          const incomingEdge = incomingEdges[0]; // Take first incoming edge
+          const sourceNode = nodes.find(n => n.id === incomingEdge.source);
+          
+          if (sourceNode) {
+            // Case 1: Source is start node - use null or special handling
+            if (sourceNode.type === 'start') {
+              previousNodeId = null; // or 'start-node' if you want to track it
+            }
+            // Case 2: Source node has buttons and edge has sourceHandle
+            else if (incomingEdge.sourceHandle && incomingEdge.sourceHandle.startsWith('button-')) {
+              const buttonIndex = parseInt(incomingEdge.sourceHandle.split('-')[1]);
+              const sourceButtons = sourceNode.data.buttons || [];
+              if (sourceButtons[buttonIndex] && sourceButtons[buttonIndex].btn_id) {
+                previousNodeId = sourceButtons[buttonIndex].btn_id;
+              }
+            }
+            // Case 3: Regular node connection - store source node_id (will be set by backend)
+            else {
+              previousNodeId = sourceNode.id; // This will reference the node's node_id field
+            }
+          }
+        }
+
         const payload = {
            id: node.id,
            type: node.type || 'message', 
@@ -269,6 +296,7 @@ const FlowBuilderContent = () => {
            position: node.position,
            properties: node.data,
            connections,
+           previous_node_id: previousNodeId,
         };
         
         console.log('[FlowBuilder] Node payload:', node.id, payload);
