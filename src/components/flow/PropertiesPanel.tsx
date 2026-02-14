@@ -377,6 +377,174 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
              </div>
           </div>
         );
+
+      case 'http':
+        return (
+          <div className="space-y-4">
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-1">Request Name</label>
+               <input
+                 type="text"
+                 value={data.label || ''}
+                 onChange={(e) => handleChange('label', e.target.value)}
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                 placeholder="e.g. Fetch User Data"
+               />
+             </div>
+             
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-1">HTTP Method</label>
+               <select
+                 value={data.method || 'GET'}
+                 onChange={(e) => handleChange('method', e.target.value)}
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+               >
+                 <option value="GET">GET</option>
+                 <option value="POST">POST</option>
+                 <option value="PUT">PUT</option>
+                 <option value="PATCH">PATCH</option>
+                 <option value="DELETE">DELETE</option>
+               </select>
+             </div>
+
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+               <input
+                 type="text"
+                 value={data.url || ''}
+                 onChange={(e) => handleChange('url', e.target.value)}
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                 placeholder="https://api.example.com/users/{{user_id}}"
+               />
+               <p className="text-xs text-gray-500 mt-1">Use {`{{variable}}`} for dynamic values</p>
+             </div>
+
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-1">Authentication</label>
+               <select
+                 value={data.authType || 'none'}
+                 onChange={(e) => handleChange('authType', e.target.value)}
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+               >
+                 <option value="none">None</option>
+                 <option value="bearer">Bearer Token</option>
+                 <option value="basic">Basic Auth</option>
+                 <option value="apikey">API Key</option>
+               </select>
+             </div>
+
+             {data.authType === 'bearer' && (
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-1">Bearer Token</label>
+                 <input
+                   type="password"
+                   value={data.bearerToken || ''}
+                   onChange={(e) => handleChange('bearerToken', e.target.value)}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                   placeholder="your-access-token"
+                 />
+               </div>
+             )}
+
+             {data.authType === 'basic' && (
+               <>
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                   <input
+                     type="text"
+                     value={data.basicUsername || ''}
+                     onChange={(e) => handleChange('basicUsername', e.target.value)}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                     placeholder="username"
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                   <input
+                     type="password"
+                     value={data.basicPassword || ''}
+                     onChange={(e) => handleChange('basicPassword', e.target.value)}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                     placeholder="password"
+                   />
+                 </div>
+               </>
+             )}
+
+             {data.authType === 'apikey' && (
+               <>
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">Header Name</label>
+                   <input
+                     type="text"
+                     value={data.apiKeyHeader || ''}
+                     onChange={(e) => handleChange('apiKeyHeader', e.target.value)}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                     placeholder="X-API-Key"
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                   <input
+                     type="password"
+                     value={data.apiKeyValue || ''}
+                     onChange={(e) => handleChange('apiKeyValue', e.target.value)}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                     placeholder="your-api-key"
+                   />
+                 </div>
+               </>
+             )}
+
+             {(data.method === 'POST' || data.method === 'PUT' || data.method === 'PATCH') && (
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-1">Request Body (JSON)</label>
+                 <textarea
+                   value={data.body || ''}
+                   onChange={(e) => handleChange('body', e.target.value)}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                   rows={6}
+                   placeholder={`{\n  "name": "{{customer_name}}",\n  "email": "{{email}}"\n}`}
+                 />
+               </div>
+             )}
+
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-1">Custom Headers (JSON)</label>
+               <textarea
+                 value={data.headers || ''}
+                 onChange={(e) => handleChange('headers', e.target.value)}
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                 rows={3}
+                 placeholder={`{\n  "Content-Type": "application/json"\n}`}
+               />
+             </div>
+
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-1">Save Response To Variable</label>
+               <input
+                 type="text"
+                 value={data.responseVariable || ''}
+                 onChange={(e) => handleChange('responseVariable', e.target.value)}
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                 placeholder="api_response"
+               />
+               <p className="text-xs text-gray-500 mt-1">Access later with {`{{api_response.data.field}}`}</p>
+             </div>
+
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-1">Timeout (seconds)</label>
+               <input
+                 type="number"
+                 value={data.timeout || 30}
+                 onChange={(e) => handleChange('timeout', parseInt(e.target.value))}
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                 min="1"
+                 max="300"
+               />
+             </div>
+          </div>
+        );
         
       case 'handoff':
          return (
