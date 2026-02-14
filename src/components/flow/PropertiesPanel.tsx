@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Plus, Trash2, HelpCircle } from 'lucide-react';
 import { type Node } from '@xyflow/react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
@@ -29,7 +30,7 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
   const handleButtonAdd = () => {
     const currentButtons = data.buttons || [];
     if (currentButtons.length < 3) {
-      handleChange('buttons', [...currentButtons, { type: 'reply', text: 'New Button' }]);
+      handleChange('buttons', [...currentButtons, { type: 'reply', text: 'New Button', btn_id: uuidv4() }]);
     }
   };
 

@@ -404,7 +404,7 @@ const FlowBuilderContent = () => {
                          </div>
                          Message + Buttons
                       </div>
-                      <div 
+                      {/* <div 
                         className="p-2 hover:bg-gray-50 rounded cursor-move text-sm text-gray-700 hover:text-green-700 transition-colors flex items-center group"
                         onDragStart={(event) => onDragStart(event, 'list', 'Message + List')}
                         draggable
@@ -414,7 +414,7 @@ const FlowBuilderContent = () => {
                             <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border border-white"></div>
                          </div>
                          Message + List
-                      </div>
+                      </div> */}
                    </div>
                 </div>
 
