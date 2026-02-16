@@ -2,15 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { X, Plus, Trash2, HelpCircle } from 'lucide-react';
 import { type Node } from '@xyflow/react';
 import { v4 as uuidv4 } from 'uuid';
+import VariableAutocomplete from './VariableAutocomplete';
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
   onClose: () => void;
   onUpdate: (id: string, data: any) => void;
   onDelete: (id: string) => void;
+  flowId?: string;
 }
 
-const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: PropertiesPanelProps) => {
+const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete, flowId }: PropertiesPanelProps) => {
   const [data, setData] = useState<any>(selectedNode?.data || {});
 
   useEffect(() => {
@@ -112,11 +114,13 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Message Body</label>
-              <textarea
+              <VariableAutocomplete
                 value={data.label || ''}
-                onChange={(e) => handleChange('label', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm h-32"
+                onChange={(value) => handleChange('label', value)}
                 placeholder="Type your message here..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
+                rows={8}
+                flowId={flowId}
               />
               <p className="text-xs text-gray-500 mt-1">
                 Use {'{{variable}}'} to insert dynamic values.
@@ -181,11 +185,13 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
-              <textarea
+              <VariableAutocomplete
                 value={data.label || ''}
-                onChange={(e) => handleChange('label', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm h-24"
+                onChange={(value) => handleChange('label', value)}
                 placeholder="What would you like to ask?"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
+                rows={6}
+                flowId={flowId}
               />
             </div>
 
@@ -529,7 +535,7 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
                  placeholder="api_response"
                />
-               <p className="text-xs text-gray-500 mt-1">Access later with {`{{api_response.data.field}}`}</p>
+               <p className="text-xs text-gray-500 mt-1">Access response data with {`{{api_response}}`} or nested fields like {`{{api_response.id}}`}</p>
              </div>
 
              <div>

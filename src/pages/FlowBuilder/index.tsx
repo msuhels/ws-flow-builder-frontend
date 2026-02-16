@@ -531,6 +531,7 @@ const FlowBuilderContent = () => {
               onClose={() => setSelectedNode(null)}
               onUpdate={handleNodeUpdate}
               onDelete={handleNodeDelete}
+              flowId={id}
             />
           )}
        </div>
