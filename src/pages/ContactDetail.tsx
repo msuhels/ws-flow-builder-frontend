@@ -65,7 +65,7 @@ const ContactDetail = () => {
   }
 
   return (
-    <div>
+    <div className="px-4 sm:px-6 lg:px-8 py-8">
       <button
         onClick={() => navigate('/contacts')}
         className="mb-6 flex items-center text-gray-600 hover:text-gray-900"

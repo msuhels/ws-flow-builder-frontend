@@ -87,7 +87,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">API Configuration</h1>
       </div>

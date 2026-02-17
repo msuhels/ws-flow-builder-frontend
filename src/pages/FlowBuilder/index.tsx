@@ -347,15 +347,10 @@ const FlowBuilderContent = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-64px)] flex flex-col">
+    <div className="h-full flex flex-col">
        {/* Toolbar */}
-       <div className="bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center shadow-sm z-10 h-16">
+       <div className="bg-gray-50 border-b border-gray-200 px-6 py-3 flex justify-between items-center z-10 relative">
           <div className="flex items-center space-x-4">
-             <button onClick={() => navigate('/flows')} className="p-1 hover:bg-gray-100 rounded text-gray-500 flex items-center text-sm">
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Back to flows
-             </button>
-             <div className="h-6 w-px bg-gray-300"></div>
              <div className="flex items-center gap-3">
                 <div>
                   <h1 className="text-lg font-semibold text-gray-800">{flowName}</h1>
