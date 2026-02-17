@@ -8,6 +8,8 @@ import Settings from './pages/Settings';
 import Contacts from './pages/Contacts';
 import ContactDetail from './pages/ContactDetail';
 import Templates from './pages/Templates';
+import Conversations from './pages/Conversations';
+import ConversationChat from './pages/ConversationChat';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -24,6 +26,8 @@ function App() {
             <Route path="/flows/:id/edit" element={<FlowBuilder />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/contacts/:id" element={<ContactDetail />} />
+            <Route path="/conversations" element={<Conversations />} />
+            <Route path="/conversations/:phoneNumber" element={<ConversationChat />} />
             <Route path="/templates" element={<Templates />} />
             <Route path="/settings" element={<Settings />} />
             {/* Redirect root to dashboard */}
