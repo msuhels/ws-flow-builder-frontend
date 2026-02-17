@@ -14,9 +14,9 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="bg-white shadow-md z-20">
+      <header className="bg-white shadow-md z-20 flex-shrink-0">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -46,7 +46,7 @@ const Layout = () => {
       {/* Sidebar and Main Content */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-hidden flex flex-col">
           <Outlet />
         </main>
       </div>
