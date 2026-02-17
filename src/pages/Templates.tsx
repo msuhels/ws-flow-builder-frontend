@@ -139,6 +139,20 @@ const Templates = () => {
     }
   };
 
+  const handleSyncStatus = async (templateId: string) => {
+    setLoading(true);
+    try {
+      await api.get(`/templates/${templateId}/sync`);
+      fetchTemplates();
+      showToast('success', 'Template status synced from Meta');
+    } catch (error: any) {
+      console.error('Failed to sync template:', error);
+      showToast('error', error.response?.data?.error || 'Failed to sync template status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteTemplate = async (templateId: string) => {
     if (!confirm('Are you sure you want to delete this template?')) return;
     setLoading(true);
@@ -235,7 +249,19 @@ const Templates = () => {
                   Ready to use
                 </span>
               ) : template.status === 'PENDING' ? (
-                <span className="text-sm text-yellow-600 flex-1">Awaiting approval</span>
+                <>
+                  <span className="text-sm text-yellow-600 flex-1">Awaiting approval</span>
+                  <button
+                    onClick={() => handleSyncStatus(template.id)}
+                    disabled={loading}
+                    className="px-3 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 flex items-center gap-2"
+                    title="Sync status from Meta"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </>
+              ) : template.status === 'REJECTED' ? (
+                <span className="text-sm text-red-600 flex-1">Rejected by Meta</span>
               ) : (
                 <>
                   <button
