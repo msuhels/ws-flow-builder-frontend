@@ -7,6 +7,7 @@ const Settings = () => {
     baseUrl: '',
     apiKey: '',
     businessNumberId: '',
+    whatsappBusinessAccountId: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,6 +26,7 @@ const Settings = () => {
           baseUrl: response.data.data.baseUrl || '',
           apiKey: response.data.data.apiKey || '',
           businessNumberId: response.data.data.businessNumberId || '',
+          whatsappBusinessAccountId: response.data.data.whatsappBusinessAccountId || '',
         });
       }
     } catch (error) {
@@ -69,9 +71,9 @@ const Settings = () => {
       setMessage({ type: 'success', text: 'Connection successful!' });
     } catch (error: any) {
       console.error('Connection test failed:', error);
-      setMessage({ 
-          type: 'error', 
-          text: error.response?.data?.message || 'Connection failed. Please check your credentials.' 
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Connection failed. Please check your credentials.'
       });
     } finally {
       setTesting(false);
@@ -95,19 +97,18 @@ const Settings = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 bg-gray-50">
           <div className="flex items-center text-gray-700">
-             <Shield className="w-5 h-5 mr-2 text-green-600" />
-             <p className="text-sm">
-                These credentials are used to connect to the <strong>WhatsApp Cloud API</strong> (Meta).
-                Please ensure you keep your Access Token secure.
-             </p>
+            <Shield className="w-5 h-5 mr-2 text-green-600" />
+            <p className="text-sm">
+              These credentials are used to connect to the <strong>WhatsApp Cloud API</strong> (Meta).
+              Please ensure you keep your Access Token secure.
+            </p>
           </div>
         </div>
 
         <div className="p-8">
           {message.text && (
-            <div className={`mb-6 p-4 rounded-md flex items-center ${
-              message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
+            <div className={`mb-6 p-4 rounded-md flex items-center ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
               {message.type === 'success' ? (
                 <CheckCircle className="w-5 h-5 mr-2" />
               ) : (
@@ -133,7 +134,7 @@ const Settings = () => {
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                    Get this from the <a href="https://developers.facebook.com/apps/" target="_blank" className="text-green-600 hover:underline">Meta App Dashboard</a>.
+                  Get this from the <a href="https://developers.facebook.com/apps/" target="_blank" className="text-green-600 hover:underline">Meta App Dashboard</a>.
                 </p>
               </div>
 
@@ -151,6 +152,21 @@ const Settings = () => {
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">The ID of the phone number sending messages.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  WhatsApp Business Account ID (WABA ID)
+                </label>
+                <input
+                  type="text"
+                  name="whatsappBusinessAccountId"
+                  value={formData.whatsappBusinessAccountId}
+                  onChange={handleChange}
+                  placeholder="100000000000002"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 font-mono text-sm"
+                />
+                <p className="mt-1 text-xs text-gray-500">Required for template management. Find this in your Meta Business Manager.</p>
               </div>
 
               <div>
@@ -188,7 +204,7 @@ const Settings = () => {
                   </>
                 )}
               </button>
-              
+
               <button
                 type="submit"
                 disabled={saving}

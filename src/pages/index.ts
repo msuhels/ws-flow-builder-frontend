@@ -9,4 +9,5 @@ export { default as FlowBuilder } from './FlowBuilder';
 export { default as Contacts } from './Contacts';
 export { default as ContactDetail } from './ContactDetail';
 export { default as Settings } from './Settings';
+export { default as Templates } from './Templates';
 export { default as Home } from './Home';
