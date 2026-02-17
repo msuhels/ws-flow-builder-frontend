@@ -7,6 +7,7 @@ import FlowBuilder from './pages/FlowBuilder';
 import Settings from './pages/Settings';
 import Contacts from './pages/Contacts';
 import ContactDetail from './pages/ContactDetail';
+import Templates from './pages/Templates';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -23,6 +24,7 @@ function App() {
             <Route path="/flows/:id/edit" element={<FlowBuilder />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/contacts/:id" element={<ContactDetail />} />
+            <Route path="/templates" element={<Templates />} />
             <Route path="/settings" element={<Settings />} />
             {/* Redirect root to dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
