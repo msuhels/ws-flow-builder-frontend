@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, GitBranch, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, GitBranch, Users, Settings, FileText } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -9,6 +9,7 @@ const Sidebar = () => {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/flows', label: 'Flows', icon: GitBranch },
     { path: '/contacts', label: 'Contacts', icon: Users },
+    { path: '/templates', label: 'Templates', icon: FileText },
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
 

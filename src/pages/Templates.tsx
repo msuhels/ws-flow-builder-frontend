@@ -131,8 +131,8 @@ const Templates = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">WhatsApp Templates</h1>
           <p className="text-gray-600 mt-1">Create and manage message templates for WhatsApp</p>
@@ -157,9 +157,9 @@ const Templates = () => {
       </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templates.map((template) => (
-          <div key={template.id} className="bg-white rounded-lg shadow p-6 space-y-4">
+          <div key={template.id} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 space-y-4">
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="font-semibold text-gray-900">{template.name}</h3>
