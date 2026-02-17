@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Send, RefreshCw, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
+import { Plus, Send, RefreshCw, CheckCircle, XCircle, Clock, Trash2, Edit } from 'lucide-react';
 import api from '../lib/axios';
 
 interface Template {
@@ -7,7 +7,7 @@ interface Template {
   name: string;
   language: string;
   category: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
   components: any[];
   createdAt: string;
   updatedAt: string;
@@ -16,6 +16,8 @@ interface Template {
 const Templates = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -76,6 +78,53 @@ const Templates = () => {
     }
   };
 
+  const handleEditTemplate = (template: Template) => {
+    if (template.status !== 'DRAFT') {
+      showToast('error', 'Only DRAFT templates can be edited');
+      return;
+    }
+
+    setEditingTemplate(template);
+    
+    // Extract data from components
+    const headerComp = template.components.find((c: any) => c.type === 'HEADER');
+    const bodyComp = template.components.find((c: any) => c.type === 'BODY');
+    const footerComp = template.components.find((c: any) => c.type === 'FOOTER');
+    const buttonsComp = template.components.find((c: any) => c.type === 'BUTTONS');
+
+    setFormData({
+      name: template.name,
+      language: template.language,
+      category: template.category,
+      headerText: headerComp?.text || '',
+      bodyText: bodyComp?.text || '',
+      footerText: footerComp?.text || '',
+      buttons: buttonsComp?.buttons || [],
+    });
+    
+    setShowEditModal(true);
+  };
+
+  const handleUpdateTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTemplate) return;
+    
+    setLoading(true);
+    try {
+      await api.put(`/templates/${editingTemplate.id}`, formData);
+      setShowEditModal(false);
+      setEditingTemplate(null);
+      fetchTemplates();
+      resetForm();
+      showToast('success', 'Template updated successfully');
+    } catch (error: any) {
+      console.error('Failed to update template:', error);
+      showToast('error', error.response?.data?.error || 'Failed to update template');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmitToMeta = async (templateId: string) => {
     setLoading(true);
     try {
@@ -85,6 +134,20 @@ const Templates = () => {
     } catch (error: any) {
       console.error('Failed to submit template:', error);
       showToast('error', error.response?.data?.error || 'Failed to submit template to Meta');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSyncStatus = async (templateId: string) => {
+    setLoading(true);
+    try {
+      await api.get(`/templates/${templateId}/sync`);
+      fetchTemplates();
+      showToast('success', 'Template status synced from Meta');
+    } catch (error: any) {
+      console.error('Failed to sync template:', error);
+      showToast('error', error.response?.data?.error || 'Failed to sync template status');
     } finally {
       setLoading(false);
     }
@@ -181,26 +244,49 @@ const Templates = () => {
 
             <div className="flex gap-2 pt-2 border-t">
               {template.status === 'APPROVED' ? (
-                <span className="text-sm text-green-600 flex items-center gap-1">
+                <span className="text-sm text-green-600 flex items-center gap-1 flex-1">
                   <CheckCircle className="w-4 h-4" />
                   Ready to use
                 </span>
               ) : template.status === 'PENDING' ? (
-                <span className="text-sm text-yellow-600">Awaiting approval</span>
+                <>
+                  <span className="text-sm text-yellow-600 flex-1">Awaiting approval</span>
+                  <button
+                    onClick={() => handleSyncStatus(template.id)}
+                    disabled={loading}
+                    className="px-3 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 flex items-center gap-2"
+                    title="Sync status from Meta"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </>
+              ) : template.status === 'REJECTED' ? (
+                <span className="text-sm text-red-600 flex-1">Rejected by Meta</span>
               ) : (
-                <button
-                  onClick={() => handleSubmitToMeta(template.id)}
-                  disabled={loading}
-                  className="flex-1 px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 flex items-center justify-center gap-2"
-                >
-                  <Send className="w-4 h-4" />
-                  Submit to Meta
-                </button>
+                <>
+                  <button
+                    onClick={() => handleEditTemplate(template)}
+                    disabled={loading}
+                    className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 flex items-center justify-center gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleSubmitToMeta(template.id)}
+                    disabled={loading}
+                    className="flex-1 px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 flex items-center justify-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    Submit
+                  </button>
+                </>
               )}
               <button
                 onClick={() => handleDeleteTemplate(template.id)}
                 disabled={loading}
                 className="px-3 py-2 bg-red-50 text-red-600 rounded hover:bg-red-100"
+                title="Delete"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -324,6 +410,123 @@ const Templates = () => {
                   className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
                 >
                   {loading ? 'Creating...' : 'Create Template'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Template Modal */}
+      {showEditModal && editingTemplate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Edit Template</h2>
+            <form onSubmit={handleUpdateTemplate} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Template Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g., welcome_message"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Language
+                  </label>
+                  <select
+                    value={formData.language}
+                    onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="MARKETING">Marketing</option>
+                    <option value="UTILITY">Utility</option>
+                    <option value="AUTHENTICATION">Authentication</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Header Text (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.headerText}
+                  onChange={(e) => setFormData({ ...formData, headerText: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  placeholder="Header text"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Body Text
+                </label>
+                <textarea
+                  required
+                  value={formData.bodyText}
+                  onChange={(e) => setFormData({ ...formData, bodyText: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  rows={4}
+                  placeholder="Message body text"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Footer Text (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.footerText}
+                  onChange={(e) => setFormData({ ...formData, footerText: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  placeholder="Footer text"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingTemplate(null);
+                    resetForm();
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                >
+                  {loading ? 'Updating...' : 'Update Template'}
                 </button>
               </div>
             </form>
