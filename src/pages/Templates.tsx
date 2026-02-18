@@ -19,13 +19,17 @@ const Templates = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
     language: 'en',
     category: 'MARKETING',
+    headerType: 'TEXT' as 'TEXT' | 'IMAGE' | 'VIDEO' | 'DOCUMENT',
     headerText: '',
+    headerMediaUrl: '',
     bodyText: '',
     footerText: '',
     buttons: [] as { type: string; text: string }[],
@@ -53,6 +57,20 @@ const Templates = () => {
     try {
       const response = await api.get('/templates');
       setTemplates(response.data.data || []);
+      
+      // Check if there are any pending templates
+      const hasPending = (response.data.data || []).some((t: Template) => t.status === 'PENDING');
+      
+      // If there are pending templates, refresh after 2 seconds to show updated statuses
+      if (hasPending) {
+        setTimeout(() => {
+          api.get('/templates').then(res => {
+            setTemplates(res.data.data || []);
+          }).catch(err => {
+            console.error('Failed to refresh templates:', err);
+          });
+        }, 2000);
+      }
     } catch (error: any) {
       console.error('Failed to fetch templates:', error);
       showToast('error', error.response?.data?.error || 'Failed to fetch templates');
@@ -96,7 +114,9 @@ const Templates = () => {
       name: template.name,
       language: template.language,
       category: template.category,
+      headerType: headerComp?.format || 'TEXT',
       headerText: headerComp?.text || '',
+      headerMediaUrl: headerComp?.example?.header_handle?.[0] || '',
       bodyText: bodyComp?.text || '',
       footerText: footerComp?.text || '',
       buttons: buttonsComp?.buttons || [],
@@ -126,30 +146,50 @@ const Templates = () => {
   };
 
   const handleSubmitToMeta = async (templateId: string) => {
-    setLoading(true);
+    setSubmittingId(templateId);
     try {
       const response = await api.post(`/templates/${templateId}/submit`);
       fetchTemplates();
-      showToast('success', 'Template submitted to Meta for approval');
+      
+      // Show appropriate message based on the returned status
+      const status = response.data.data?.status;
+      if (status === 'APPROVED') {
+        showToast('success', 'Template approved by Meta and ready to use!');
+      } else if (status === 'REJECTED') {
+        showToast('error', 'Template was rejected by Meta. Please review and create a new one.');
+      } else {
+        showToast('success', 'Template submitted to Meta for approval');
+      }
     } catch (error: any) {
       console.error('Failed to submit template:', error);
       showToast('error', error.response?.data?.error || 'Failed to submit template to Meta');
     } finally {
-      setLoading(false);
+      setSubmittingId(null);
     }
   };
 
   const handleSyncStatus = async (templateId: string) => {
-    setLoading(true);
+    setSyncingId(templateId);
     try {
-      await api.get(`/templates/${templateId}/sync`);
+      const response = await api.get(`/templates/${templateId}/sync`);
       fetchTemplates();
-      showToast('success', 'Template status synced from Meta');
+      
+      // Show appropriate message based on the synced status
+      const status = response.data.data?.status;
+      if (status === 'APPROVED') {
+        showToast('success', 'Template is approved and ready to use!');
+      } else if (status === 'REJECTED') {
+        showToast('error', 'Template was rejected by Meta');
+      } else if (status === 'PENDING') {
+        showToast('success', 'Template is still pending approval');
+      } else {
+        showToast('success', 'Template status synced from Meta');
+      }
     } catch (error: any) {
       console.error('Failed to sync template:', error);
       showToast('error', error.response?.data?.error || 'Failed to sync template status');
     } finally {
-      setLoading(false);
+      setSyncingId(null);
     }
   };
 
@@ -173,7 +213,9 @@ const Templates = () => {
       name: '',
       language: 'en',
       category: 'MARKETING',
+      headerType: 'TEXT',
       headerText: '',
+      headerMediaUrl: '',
       bodyText: '',
       footerText: '',
       buttons: [],
@@ -192,6 +234,130 @@ const Templates = () => {
         return null;
     }
   };
+
+  const renderTemplateForm = () => (
+    <>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Template Name
+        </label>
+        <input
+          type="text"
+          required
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          placeholder="e.g., welcome_message"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Language
+          </label>
+          <select
+            value={formData.language}
+            onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          >
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Category
+          </label>
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          >
+            <option value="MARKETING">Marketing</option>
+            <option value="UTILITY">Utility</option>
+            <option value="AUTHENTICATION">Authentication</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Header Type (Optional)
+        </label>
+        <select
+          value={formData.headerType}
+          onChange={(e) => setFormData({ ...formData, headerType: e.target.value as any })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+        >
+          <option value="TEXT">Text</option>
+          <option value="IMAGE">Image</option>
+          <option value="VIDEO">Video</option>
+          <option value="DOCUMENT">Document</option>
+        </select>
+      </div>
+
+      {formData.headerType === 'TEXT' ? (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Header Text
+          </label>
+          <input
+            type="text"
+            value={formData.headerText}
+            onChange={(e) => setFormData({ ...formData, headerText: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+            placeholder="Header text"
+          />
+        </div>
+      ) : (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Media URL ({formData.headerType})
+          </label>
+          <input
+            type="url"
+            value={formData.headerMediaUrl}
+            onChange={(e) => setFormData({ ...formData, headerMediaUrl: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+            placeholder={`Enter ${formData.headerType.toLowerCase()} URL`}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Provide a publicly accessible URL for the {formData.headerType.toLowerCase()}
+          </p>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Body Text
+        </label>
+        <textarea
+          required
+          value={formData.bodyText}
+          onChange={(e) => setFormData({ ...formData, bodyText: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          rows={4}
+          placeholder="Message body text"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Footer Text (Optional)
+        </label>
+        <input
+          type="text"
+          value={formData.footerText}
+          onChange={(e) => setFormData({ ...formData, footerText: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          placeholder="Footer text"
+        />
+      </div>
+    </>
+  );
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8">
@@ -253,15 +419,25 @@ const Templates = () => {
                   <span className="text-sm text-yellow-600 flex-1">Awaiting approval</span>
                   <button
                     onClick={() => handleSyncStatus(template.id)}
-                    disabled={loading}
-                    className="px-3 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 flex items-center gap-2"
+                    disabled={syncingId === template.id}
+                    className="px-3 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 flex items-center gap-2 disabled:opacity-50"
                     title="Sync status from Meta"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className={`w-4 h-4 ${syncingId === template.id ? 'animate-spin' : ''}`} />
                   </button>
                 </>
               ) : template.status === 'REJECTED' ? (
-                <span className="text-sm text-red-600 flex-1">Rejected by Meta</span>
+                <>
+                  <span className="text-sm text-red-600 flex-1">Rejected by Meta</span>
+                  <button
+                    onClick={() => handleDeleteTemplate(template.id)}
+                    disabled={loading}
+                    className="px-3 py-2 bg-red-50 text-red-600 rounded hover:bg-red-100 text-sm"
+                    title="Delete and create new"
+                  >
+                    Delete
+                  </button>
+                </>
               ) : (
                 <>
                   <button
@@ -274,11 +450,20 @@ const Templates = () => {
                   </button>
                   <button
                     onClick={() => handleSubmitToMeta(template.id)}
-                    disabled={loading}
-                    className="flex-1 px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 flex items-center justify-center gap-2"
+                    disabled={submittingId === template.id}
+                    className="flex-1 px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <Send className="w-4 h-4" />
-                    Submit
+                    {submittingId === template.id ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Submit
+                      </>
+                    )}
                   </button>
                 </>
               )}
@@ -307,91 +492,7 @@ const Templates = () => {
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Create New Template</h2>
             <form onSubmit={handleCreateTemplate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Template Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  placeholder="e.g., welcome_message"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Language
-                  </label>
-                  <select
-                    value={formData.language}
-                    onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="MARKETING">Marketing</option>
-                    <option value="UTILITY">Utility</option>
-                    <option value="AUTHENTICATION">Authentication</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Header Text (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.headerText}
-                  onChange={(e) => setFormData({ ...formData, headerText: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  placeholder="Header text"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Body Text
-                </label>
-                <textarea
-                  required
-                  value={formData.bodyText}
-                  onChange={(e) => setFormData({ ...formData, bodyText: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  rows={4}
-                  placeholder="Message body text"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Footer Text (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.footerText}
-                  onChange={(e) => setFormData({ ...formData, footerText: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  placeholder="Footer text"
-                />
-              </div>
+              {renderTemplateForm()}
 
               <div className="flex gap-2 pt-4">
                 <button
@@ -423,91 +524,7 @@ const Templates = () => {
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Template</h2>
             <form onSubmit={handleUpdateTemplate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Template Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  placeholder="e.g., welcome_message"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Language
-                  </label>
-                  <select
-                    value={formData.language}
-                    onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="MARKETING">Marketing</option>
-                    <option value="UTILITY">Utility</option>
-                    <option value="AUTHENTICATION">Authentication</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Header Text (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.headerText}
-                  onChange={(e) => setFormData({ ...formData, headerText: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  placeholder="Header text"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Body Text
-                </label>
-                <textarea
-                  required
-                  value={formData.bodyText}
-                  onChange={(e) => setFormData({ ...formData, bodyText: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  rows={4}
-                  placeholder="Message body text"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Footer Text (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={formData.footerText}
-                  onChange={(e) => setFormData({ ...formData, footerText: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  placeholder="Footer text"
-                />
-              </div>
+              {renderTemplateForm()}
 
               <div className="flex gap-2 pt-4">
                 <button
