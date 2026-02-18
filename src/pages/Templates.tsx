@@ -57,20 +57,6 @@ const Templates = () => {
     try {
       const response = await api.get('/templates');
       setTemplates(response.data.data || []);
-      
-      // Check if there are any pending templates
-      const hasPending = (response.data.data || []).some((t: Template) => t.status === 'PENDING');
-      
-      // If there are pending templates, refresh after 2 seconds to show updated statuses
-      if (hasPending) {
-        setTimeout(() => {
-          api.get('/templates').then(res => {
-            setTemplates(res.data.data || []);
-          }).catch(err => {
-            console.error('Failed to refresh templates:', err);
-          });
-        }, 2000);
-      }
     } catch (error: any) {
       console.error('Failed to fetch templates:', error);
       showToast('error', error.response?.data?.error || 'Failed to fetch templates');
