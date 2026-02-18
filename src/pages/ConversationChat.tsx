@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Send, RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import api from '../lib/axios';
 
 interface Message {
@@ -20,6 +20,7 @@ const ConversationChat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [newMessage, setNewMessage] = useState('');
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning'; message: string; details?: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,6 +32,19 @@ const ConversationChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 8000); // 8 seconds for policy warnings
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  const showToast = (type: 'success' | 'error' | 'warning', message: string, details?: string) => {
+    setToast({ type, message, details });
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -55,21 +69,54 @@ const ConversationChat = () => {
     
     if (!newMessage.trim() || sending) return;
 
+    const messageText = newMessage.trim();
+    const tempId = `temp-${Date.now()}`;
+    
+    // Optimistic update - add message to UI immediately
+    const optimisticMessage: Message = {
+      id: tempId,
+      phone_number: phoneNumber || '',
+      message: messageText,
+      message_type: 'manual',
+      direction: 'sent',
+      status: 'sending',
+      created_at: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessage('');
+
     try {
       setSending(true);
       const response = await api.post('/conversations/send', {
         phoneNumber,
-        message: newMessage.trim()
+        message: messageText
       });
 
       if (response.data.success) {
-        setNewMessage('');
-        // Refresh messages to show the new one
-        await fetchMessages();
+        // Replace temp message with actual message from server
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === tempId 
+              ? { ...response.data.data, status: 'sent' }
+              : msg
+          )
+        );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
-      alert('Failed to send message. Please try again.');
+      
+      // Remove the optimistic message on error
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
+      
+      // Check if it's a WhatsApp policy violation (24-hour window)
+      if (error.response?.status === 403 && error.response?.data?.reason === 'whatsapp_policy') {
+        const details = error.response.data.details || 'You can only send template messages or wait for the user to message you first.';
+        showToast('warning', 'Cannot send message - WhatsApp Policy', details);
+      } else {
+        const errorMessage = error.response?.data?.message || 'Failed to send message. Please try again.';
+        showToast('error', errorMessage);
+      }
     } finally {
       setSending(false);
     }
@@ -231,6 +278,41 @@ const ConversationChat = () => {
           </button>
         </form>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slide-down max-w-md">
+          <div
+            className={`flex items-start gap-3 px-6 py-4 rounded-lg shadow-lg ${
+              toast.type === 'success'
+                ? 'bg-green-500 text-white'
+                : toast.type === 'warning'
+                ? 'bg-yellow-500 text-white'
+                : 'bg-red-500 text-white'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            ) : toast.type === 'warning' ? (
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            ) : (
+              <XCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1">
+              <span className="font-medium block">{toast.message}</span>
+              {toast.details && (
+                <span className="text-sm opacity-90 mt-1 block">{toast.details}</span>
+              )}
+            </div>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 hover:opacity-80 flex-shrink-0"
+            >
+              <XCircle className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
