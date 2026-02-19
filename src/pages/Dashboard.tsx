@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import api from '../lib/axios';
-import { LayoutDashboard, GitBranch, MessageSquare, CheckCircle, XCircle, Send, Users } from 'lucide-react';
+import { GitBranch, CheckCircle, Send } from 'lucide-react';
 
 interface DashboardStats {
   totalFlows: number;
   activeFlows: number;
   messagesSentToday: number;
-  totalContacts: number;
   deliveryStatus: Record<string, number>;
 }
 
@@ -51,7 +50,7 @@ const Dashboard = () => {
     <div className="px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Total Flows Card */}
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
@@ -72,17 +71,6 @@ const Dashboard = () => {
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats?.activeFlows || 0}</p>
-        </div>
-
-        {/* Total Contacts Card */}
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-500 text-sm font-medium">Total Contacts</h3>
-            <div className="bg-indigo-100 p-2 rounded-lg">
-              <Users className="w-5 h-5 text-indigo-600" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{stats?.totalContacts || 0}</p>
         </div>
 
         {/* Messages Sent Today Card */}

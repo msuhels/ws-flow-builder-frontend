@@ -5,8 +5,6 @@ import Dashboard from './pages/Dashboard';
 import Flows from './pages/Flows';
 import FlowBuilder from './pages/FlowBuilder';
 import Settings from './pages/Settings';
-import Contacts from './pages/Contacts';
-import ContactDetail from './pages/ContactDetail';
 import Templates from './pages/Templates';
 import Conversations from './pages/Conversations';
 import ConversationChat from './pages/ConversationChat';
@@ -24,8 +22,6 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/flows" element={<Flows />} />
             <Route path="/flows/:id/edit" element={<FlowBuilder />} />
-            <Route path="/contacts" element={<Contacts />} />
-            <Route path="/contacts/:id" element={<ContactDetail />} />
             <Route path="/conversations" element={<Conversations />} />
             <Route path="/conversations/:phoneNumber" element={<ConversationChat />} />
             <Route path="/templates" element={<Templates />} />

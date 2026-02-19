@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, GitBranch, Users, Settings, FileText, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, GitBranch, Settings, FileText, MessageSquare } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -8,7 +8,6 @@ const Sidebar = () => {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/flows', label: 'Flows', icon: GitBranch },
-    { path: '/contacts', label: 'Contacts', icon: Users },
     { path: '/conversations', label: 'Conversations', icon: MessageSquare },
     { path: '/templates', label: 'Templates', icon: FileText },
     { path: '/settings', label: 'Settings', icon: Settings },
