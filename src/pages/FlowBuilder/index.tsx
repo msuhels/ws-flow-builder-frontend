@@ -60,6 +60,15 @@ const FlowBuilderContent = () => {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [showTestPanel, setShowTestPanel] = useState(false);
 
+  // Custom handler to prevent start node deletion
+  const onNodesDelete = useCallback((nodesToDelete: Node[]) => {
+    const filteredNodes = nodesToDelete.filter(node => node.id !== 'start-node');
+    if (filteredNodes.length !== nodesToDelete.length) {
+      console.log('[FlowBuilder] Prevented deletion of start node');
+    }
+    return filteredNodes;
+  }, []);
+
   useEffect(() => {
     if (id) {
       fetchFlow(id);
@@ -85,7 +94,8 @@ const FlowBuilderContent = () => {
           triggerValue: flowData.triggerValue || '',
           webhookUrl: flowData.webhookUrl
         },
-        draggable: true,
+        draggable: false,
+        deletable: false,
       };
       
       // Map backend nodes to ReactFlow nodes
@@ -210,6 +220,10 @@ const FlowBuilderContent = () => {
   };
 
   const handleNodeDelete = (id: string) => {
+    // Prevent deletion of start node
+    if (id === 'start-node') {
+      return;
+    }
     setNodes((nds) => nds.filter((node) => node.id !== id));
     setSelectedNode(null);
   };
@@ -398,6 +412,7 @@ const FlowBuilderContent = () => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodesDelete={onNodesDelete}
             nodeTypes={nodeTypes}
             onDrop={onDrop}
             onDragOver={onDragOver}

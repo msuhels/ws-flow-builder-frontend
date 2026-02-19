@@ -64,6 +64,11 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete, flowId }: 
       case 'start':
         return (
           <div className="space-y-4">
+            <div className="bg-green-50 p-3 rounded text-xs text-green-800 border border-green-100">
+              <p className="font-medium mb-1">⚠️ This is the default start node</p>
+              <p>This node cannot be deleted or moved. It marks the entry point of your flow.</p>
+            </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Type</label>
               <select
