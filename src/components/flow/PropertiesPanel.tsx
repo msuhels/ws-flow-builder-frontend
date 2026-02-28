@@ -2,15 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { X, Plus, Trash2, HelpCircle } from 'lucide-react';
 import { type Node } from '@xyflow/react';
 import { v4 as uuidv4 } from 'uuid';
+import VariableAutocomplete from './VariableAutocomplete';
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
   onClose: () => void;
   onUpdate: (id: string, data: any) => void;
   onDelete: (id: string) => void;
+  flowId?: string;
 }
 
-const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: PropertiesPanelProps) => {
+const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete, flowId }: PropertiesPanelProps) => {
   const [data, setData] = useState<any>(selectedNode?.data || {});
 
   useEffect(() => {
@@ -62,6 +64,11 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
       case 'start':
         return (
           <div className="space-y-4">
+            <div className="bg-green-50 p-3 rounded text-xs text-green-800 border border-green-100">
+              <p className="font-medium mb-1">⚠️ This is the default start node</p>
+              <p>This node cannot be deleted or moved. It marks the entry point of your flow.</p>
+            </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Type</label>
               <select
@@ -112,11 +119,13 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Message Body</label>
-              <textarea
+              <VariableAutocomplete
                 value={data.label || ''}
-                onChange={(e) => handleChange('label', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm h-32"
+                onChange={(value) => handleChange('label', value)}
                 placeholder="Type your message here..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
+                rows={8}
+                flowId={flowId}
               />
               <p className="text-xs text-gray-500 mt-1">
                 Use {'{{variable}}'} to insert dynamic values.
@@ -180,45 +189,15 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
-              <textarea
+              <label className="block text-sm font-medium text-gray-700 mb-1">Message Text</label>
+              <VariableAutocomplete
                 value={data.label || ''}
-                onChange={(e) => handleChange('label', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm h-24"
-                placeholder="What would you like to ask?"
+                onChange={(value) => handleChange('label', value)}
+                placeholder="Enter your message text..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                rows={6}
+                flowId={flowId}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Input Type</label>
-              <select
-                value={data.inputType || 'text'}
-                onChange={(e) => handleChange('inputType', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
-              >
-                <option value="text">Text</option>
-                <option value="number">Number</option>
-                <option value="email">Email</option>
-                <option value="location">Location</option>
-                <option value="image">Image</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Save Response To Variable</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={data.variableName || ''}
-                  onChange={(e) => handleChange('variableName', e.target.value)}
-                  className="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm font-mono"
-                  placeholder="custom_var_name"
-                />
-                <span className="absolute left-3 top-2 text-gray-400 font-mono text-sm">@</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                This variable can be used in future messages as {'{{custom_var_name}}'}.
-              </p>
             </div>
           </div>
         );
@@ -529,7 +508,7 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete }: Properti
                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
                  placeholder="api_response"
                />
-               <p className="text-xs text-gray-500 mt-1">Access later with {`{{api_response.data.field}}`}</p>
+               <p className="text-xs text-gray-500 mt-1">Access response data with {`{{api_response}}`} or nested fields like {`{{api_response.id}}`}</p>
              </div>
 
              <div>
