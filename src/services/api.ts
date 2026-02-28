@@ -8,7 +8,6 @@ import type {
   AuthResponse, 
   ApiResponse, 
   Flow, 
-  Contact, 
   Message, 
   Settings 
 } from '@/types';
@@ -67,43 +66,10 @@ export const flowsApi = {
   },
 };
 
-// Contacts API
-export const contactsApi = {
-  getAll: async (): Promise<ApiResponse<Contact[]>> => {
-    const response = await api.get(API_ENDPOINTS.CONTACTS);
-    return response.data;
-  },
-
-  getById: async (id: string): Promise<ApiResponse<Contact>> => {
-    const response = await api.get(`${API_ENDPOINTS.CONTACTS}/${id}`);
-    return response.data;
-  },
-
-  create: async (contact: Partial<Contact>): Promise<ApiResponse<Contact>> => {
-    const response = await api.post(API_ENDPOINTS.CONTACTS, contact);
-    return response.data;
-  },
-
-  update: async (id: string, contact: Partial<Contact>): Promise<ApiResponse<Contact>> => {
-    const response = await api.put(`${API_ENDPOINTS.CONTACTS}/${id}`, contact);
-    return response.data;
-  },
-
-  delete: async (id: string): Promise<ApiResponse> => {
-    const response = await api.delete(`${API_ENDPOINTS.CONTACTS}/${id}`);
-    return response.data;
-  },
-};
-
 // Messages API
 export const messagesApi = {
   send: async (message: Partial<Message>): Promise<ApiResponse<Message>> => {
     const response = await api.post(API_ENDPOINTS.MESSAGES, message);
-    return response.data;
-  },
-
-  getByContact: async (contactId: string): Promise<ApiResponse<Message[]>> => {
-    const response = await api.get(`${API_ENDPOINTS.MESSAGES}?contact_id=${contactId}`);
     return response.data;
   },
 };

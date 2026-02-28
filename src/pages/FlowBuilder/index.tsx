@@ -60,6 +60,15 @@ const FlowBuilderContent = () => {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [showTestPanel, setShowTestPanel] = useState(false);
 
+  // Custom handler to prevent start node deletion
+  const onNodesDelete = useCallback((nodesToDelete: Node[]) => {
+    const filteredNodes = nodesToDelete.filter(node => node.id !== 'start-node');
+    if (filteredNodes.length !== nodesToDelete.length) {
+      console.log('[FlowBuilder] Prevented deletion of start node');
+    }
+    return filteredNodes;
+  }, []);
+
   useEffect(() => {
     if (id) {
       fetchFlow(id);
@@ -85,7 +94,8 @@ const FlowBuilderContent = () => {
           triggerValue: flowData.triggerValue || '',
           webhookUrl: flowData.webhookUrl
         },
-        draggable: true,
+        draggable: false,
+        deletable: false,
       };
       
       // Map backend nodes to ReactFlow nodes
@@ -210,6 +220,10 @@ const FlowBuilderContent = () => {
   };
 
   const handleNodeDelete = (id: string) => {
+    // Prevent deletion of start node
+    if (id === 'start-node') {
+      return;
+    }
     setNodes((nds) => nds.filter((node) => node.id !== id));
     setSelectedNode(null);
   };
@@ -347,15 +361,10 @@ const FlowBuilderContent = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-64px)] flex flex-col">
+    <div className="h-full flex flex-col">
        {/* Toolbar */}
-       <div className="bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center shadow-sm z-10 h-16">
+       <div className="bg-gray-50 border-b border-gray-200 px-6 py-3 flex justify-between items-center z-10 relative">
           <div className="flex items-center space-x-4">
-             <button onClick={() => navigate('/flows')} className="p-1 hover:bg-gray-100 rounded text-gray-500 flex items-center text-sm">
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Back to flows
-             </button>
-             <div className="h-6 w-px bg-gray-300"></div>
              <div className="flex items-center gap-3">
                 <div>
                   <h1 className="text-lg font-semibold text-gray-800">{flowName}</h1>
@@ -403,6 +412,7 @@ const FlowBuilderContent = () => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodesDelete={onNodesDelete}
             nodeTypes={nodeTypes}
             onDrop={onDrop}
             onDragOver={onDragOver}
@@ -433,6 +443,14 @@ const FlowBuilderContent = () => {
                       >
                          <MessageSquare className="w-4 h-4 mr-3 text-gray-400 group-hover:text-green-600" />
                          Plain Message
+                      </div>
+                      <div 
+                        className="p-2 hover:bg-gray-50 rounded cursor-move text-sm text-gray-700 hover:text-blue-700 transition-colors flex items-center group"
+                        onDragStart={(event) => onDragStart(event, 'input', 'Input')}
+                        draggable
+                      >
+                         <MessageSquare className="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-600" />
+                         Input
                       </div>
                       <div 
                         className="p-2 hover:bg-gray-50 rounded cursor-move text-sm text-gray-700 hover:text-green-700 transition-colors flex items-center group"
@@ -531,6 +549,7 @@ const FlowBuilderContent = () => {
               onClose={() => setSelectedNode(null)}
               onUpdate={handleNodeUpdate}
               onDelete={handleNodeDelete}
+              flowId={id}
             />
           )}
        </div>
