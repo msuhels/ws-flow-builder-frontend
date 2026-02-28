@@ -445,6 +445,14 @@ const FlowBuilderContent = () => {
                          Plain Message
                       </div>
                       <div 
+                        className="p-2 hover:bg-gray-50 rounded cursor-move text-sm text-gray-700 hover:text-blue-700 transition-colors flex items-center group"
+                        onDragStart={(event) => onDragStart(event, 'input', 'Input')}
+                        draggable
+                      >
+                         <MessageSquare className="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-600" />
+                         Input
+                      </div>
+                      <div 
                         className="p-2 hover:bg-gray-50 rounded cursor-move text-sm text-gray-700 hover:text-green-700 transition-colors flex items-center group"
                         onDragStart={(event) => onDragStart(event, 'button', 'Message + Buttons')}
                         draggable

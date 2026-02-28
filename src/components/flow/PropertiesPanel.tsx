@@ -189,47 +189,15 @@ const PropertiesPanel = ({ selectedNode, onClose, onUpdate, onDelete, flowId }: 
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Message Text</label>
               <VariableAutocomplete
                 value={data.label || ''}
                 onChange={(value) => handleChange('label', value)}
-                placeholder="What would you like to ask?"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
+                placeholder="Enter your message text..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
                 rows={6}
                 flowId={flowId}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Input Type</label>
-              <select
-                value={data.inputType || 'text'}
-                onChange={(e) => handleChange('inputType', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
-              >
-                <option value="text">Text</option>
-                <option value="number">Number</option>
-                <option value="email">Email</option>
-                <option value="location">Location</option>
-                <option value="image">Image</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Save Response To Variable</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={data.variableName || ''}
-                  onChange={(e) => handleChange('variableName', e.target.value)}
-                  className="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm font-mono"
-                  placeholder="custom_var_name"
-                />
-                <span className="absolute left-3 top-2 text-gray-400 font-mono text-sm">@</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                This variable can be used in future messages as {'{{custom_var_name}}'}.
-              </p>
             </div>
           </div>
         );
